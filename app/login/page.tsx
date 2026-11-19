@@ -131,7 +131,7 @@ export default function LoginPage() {
             <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-900 space-y-1">
               <p className="font-semibold">بيانات الدخول الافتراضية للمسؤول:</p>
               <p dir="ltr" className="font-mono text-xs">
-                Username: <span className="font-bold">admin</span> &bull; Password: <span className="font-bold">AdminPassword123!</span> <span className="text-gray-500">(أو admin)</span>
+                Username: <span className="font-bold">admin</span> &bull; Password: <span className="font-bold">AdminPassword123!</span>
               </p>
             </div>
           </div>

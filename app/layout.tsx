@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { Navbar } from '@/components/Navbar';
+import { AuthGuard } from '@/components/AuthGuard';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
@@ -30,7 +31,11 @@ export default function RootLayout({
             <Navbar />
           </Suspense>
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {children}
+            <Suspense fallback={null}>
+              <AuthGuard>
+                {children}
+              </AuthGuard>
+            </Suspense>
           </main>
         </AuthProvider>
       </body>

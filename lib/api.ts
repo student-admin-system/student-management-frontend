@@ -22,11 +22,13 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem('token', token);
+  document.cookie = `token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
 }
 
 export function removeToken(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('token');
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
 }
 
 export function getStoredUser(): unknown | null {

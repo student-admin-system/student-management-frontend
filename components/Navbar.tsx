@@ -80,8 +80,8 @@ export function Navbar() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  // If on login page, don't show navigation
-  if (pathname === '/login') return null;
+  // If on login page or unauthenticated, don't show navigation
+  if (pathname === '/login' || !user) return null;
 
   const isActive = (path: string) => {
     if (path === '/') return pathname === '/';
