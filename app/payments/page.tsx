@@ -13,6 +13,7 @@ import {
   CreditCard,
   Search,
   CheckCircle,
+  AlertCircle,
   Calendar,
   DollarSign,
   User,
@@ -145,6 +146,23 @@ function PaymentsContent() {
     .filter((c) => selectedChargeIds.has(c.id))
     .reduce((sum, c) => sum + Number(c.amount || 0), 0);
 
+  // Check if month is locked to PER_LESSON or has active per-lesson charges
+  const currentMonthBillingState = selectedStudent?.billingStates?.find(
+    (b) => b.month === subMonth
+  );
+  const isLockedPerLesson =
+    !!currentMonthBillingState?.isConfirmed &&
+    (currentMonthBillingState.method === 'PER_LESSON' ||
+      (currentMonthBillingState as any).billingMethod === 'PER_LESSON');
+  const hasPerLessonCharges =
+    !!selectedStudent?.charges?.some(
+      (c) =>
+        (c.month === subMonth || (c as any).billedMonth === subMonth) &&
+        c.type === 'PER_LESSON' &&
+        c.status !== 'VOIDED'
+    );
+  const isPerLessonBlocked = isLockedPerLesson || hasPerLessonCharges;
+
   // Record settlement payment (FR-PAY-01, BR-03, BR-24)
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,6 +198,13 @@ function PaymentsContent() {
     if (!selectedStudent) return;
     if (!subMonth) {
       setError('يرجى تحديد الشهر المراد سداد اشتراكه');
+      return;
+    }
+
+    if (isPerLessonBlocked) {
+      setError(
+        `طريقة المحاسبة لهذا الطالب مسجلة ومقفلة بنظام (الحصة الواحدة) لشهر (${subMonth}). لا يمكن تسجيل اشتراك شهري لهذا الشهر، ويمكن للمدير فقط إعادة ضبط طريقة الدفع للشهر من صفحة ملف الطالب أولاً.`
+      );
       return;
     }
 
@@ -469,6 +494,19 @@ function PaymentsContent() {
                 </p>
               </div>
 
+              {isPerLessonBlocked && (
+                <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-amber-950 space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
+                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                    <span>لا يمكن تسجيل اشتراك شهري لشهر ({subMonth})</span>
+                  </div>
+                  <p className="text-xs text-amber-800 mr-7 leading-relaxed">
+                    طريقة المحاسبة لهذا الطالب مسجلة ومقفلة بنظام <strong>(الحصة الواحدة)</strong> لهذا الشهر لوجود حضور أو رسوم حصص مسجلة مسبقاً.
+                    ولا يمكن تسجيل اشتراك شهري لنفس الشهر. (ملاحظة: إذا كان هناك استثناء، يمكن للمدير فقط إعادة ضبط طريقة الدفع للشهر من صفحة ملف الطالب).
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">الشهر المراد سداده (YYYY-MM):</label>
@@ -494,20 +532,34 @@ function PaymentsContent() {
               </div>
 
               {subFee && (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                <div className={`p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border ${
+                  isPerLessonBlocked
+                    ? 'bg-gray-50 border-gray-200'
+                    : 'bg-emerald-50 border-emerald-200'
+                }`}>
                   <div>
-                    <div className="text-xs text-emerald-800 font-bold">قيمة الاشتراك الشهري لهذا المستوى:</div>
+                    <div className="text-xs text-gray-700 font-bold">قيمة الاشتراك الشهري لهذا المستوى:</div>
                     <div className="text-xl font-extrabold text-emerald-700 font-mono mt-0.5">
                       {formatEGP(subFee.subscriptionFee)}
                     </div>
                   </div>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                    disabled={isSubmitting || isPerLessonBlocked}
+                    className={`px-6 py-2.5 font-bold rounded-xl transition-all flex items-center gap-2 ${
+                      isPerLessonBlocked
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20 cursor-pointer disabled:opacity-50'
+                    }`}
                   >
                     <Check className="w-4 h-4" />
-                    <span>{isSubmitting ? 'جاري السداد...' : 'سداد وتفعيل الاشتراك'}</span>
+                    <span>
+                      {isSubmitting
+                        ? 'جاري السداد...'
+                        : isPerLessonBlocked
+                        ? 'محظور (نظام بالحصة)'
+                        : 'سداد وتفعيل الاشتراك'}
+                    </span>
                   </button>
                 </div>
               )}
