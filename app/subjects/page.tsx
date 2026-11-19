@@ -13,6 +13,7 @@ import {
   Layers,
   Edit,
   Power,
+  Trash2,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -50,6 +51,10 @@ export default function SubjectsPage() {
   const [toggleSubject, setToggleSubject] = useState<Subject | null>(null);
   const [toggleLevel, setToggleLevel] = useState<Level | null>(null);
   const [isToggling, setIsToggling] = useState(false);
+
+  // Permanent Delete Subject Modal (BR-27)
+  const [deleteSubject, setDeleteSubject] = useState<Subject | null>(null);
+  const [isDeletingSubject, setIsDeletingSubject] = useState(false);
 
   const fetchSubjects = useCallback(async () => {
     try {
@@ -187,6 +192,23 @@ export default function SubjectsPage() {
     }
   };
 
+  // Permanent Delete Subject (Admin Only - BR-27)
+  const handleDeleteSubject = async () => {
+    if (!deleteSubject) return;
+    try {
+      setIsDeletingSubject(true);
+      setError(null);
+      await api.delete(`/subjects/${deleteSubject.id}`);
+      setSuccess(`تم حذف مادة "${deleteSubject.name}" وكافة مستوياتها وبياناتها نهائياً`);
+      setDeleteSubject(null);
+      fetchSubjects();
+    } catch (err: any) {
+      setError(err?.message || 'تعذر حذف المادة نهائياً');
+    } finally {
+      setIsDeletingSubject(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Title & Actions */}
@@ -297,6 +319,15 @@ export default function SubjectsPage() {
                     title={sub.isActive ? 'تعطيل المادة' : 'تفعيل المادة'}
                   >
                     <Power className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeleteSubject(sub)}
+                    className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    title="حذف المادة نهائياً وكافة بياناتها"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -557,6 +588,19 @@ export default function SubjectsPage() {
         isLoading={isToggling}
         onConfirm={handleToggleLevelActive}
         onCancel={() => setToggleLevel(null)}
+      />
+
+      {/* Permanent Delete Subject Confirm Modal (BR-27) */}
+      <ConfirmModal
+        isOpen={!!deleteSubject}
+        title="حذف نهائي للمادة الدراسية"
+        message={`هل أنت متأكد من حذف مادة "${deleteSubject?.name || ''}" ومستوياتها وكافة الحصص والرسوم والسجلات المرتبطة بها نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`}
+        confirmText="نعم، احذف نهائياً"
+        cancelText="إلغاء"
+        isDanger={true}
+        isLoading={isDeletingSubject}
+        onConfirm={handleDeleteSubject}
+        onCancel={() => setDeleteSubject(null)}
       />
     </div>
   );

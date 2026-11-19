@@ -39,7 +39,8 @@ export interface MonthlyBillingState {
   studentId: string;
   month: string;
   isConfirmed: boolean;
-  billingMethod: BillingMethod;
+  method?: BillingMethod;
+  billingMethod?: BillingMethod;
   confirmedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -135,13 +136,19 @@ export interface Attendance {
 export interface StudentAttendanceReportItem {
   lessonId: string;
   date: string;
+  month?: string;
   lessonNumber: number;
-  levelName: string;
-  subjectName: string;
+  monthlyLessonNumber?: number;
+  levelId?: string;
+  levelName?: string;
+  subjectName?: string;
+  combination?: string;
   status: 'PRESENT' | 'ABSENT';
-  attendanceId?: string;
-  entryTimestamp?: string;
-  recordedBy?: { id: string; name: string };
+  statusLabel?: string;
+  attendanceId?: string | null;
+  entryTimestamp?: string | null;
+  recordedBy?: { id?: string; name: string } | null;
+  recordedByName?: string | null;
   isVoided?: boolean;
 }
 
@@ -150,9 +157,11 @@ export interface StudentAttendanceReport {
     id: string;
     studentNumber: number;
     fullName: string;
-    levelName: string;
-    subjectName: string;
+    levelName?: string;
+    subjectName?: string;
+    combination?: string;
     status: string;
+    enrollmentDate?: string;
   };
   summary: {
     totalHeld: number;
@@ -160,6 +169,7 @@ export interface StudentAttendanceReport {
     totalAbsent: number;
   };
   records: StudentAttendanceReportItem[];
+  lessons?: StudentAttendanceReportItem[];
 }
 
 export interface Student {

@@ -213,10 +213,10 @@ export default function DashboardPage() {
                   <span className="text-xs text-gray-500 mr-1.5">طالب</span>
                 </div>
                 <Link
-                  href="/billing"
+                  href="/reports/unconfirmed"
                   className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-0.5"
                 >
-                  <span>تأكيد الآن</span>
+                  <span>عرض الكشف</span>
                   <ArrowUpLeft className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -328,18 +328,18 @@ export default function DashboardPage() {
           {isAdmin && (
             <>
               <Link
-                href="/billing"
+                href="/payments?mode=subscription"
                 className="bg-white p-5 rounded-2xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all group flex items-start gap-4"
               >
-                <div className="p-3 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                   <Receipt className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-sm group-hover:text-amber-600 transition-colors">
-                    تأكيد الاشتراكات
+                  <h3 className="font-bold text-gray-900 text-sm group-hover:text-indigo-600 transition-colors">
+                    سداد الاشتراكات الشهرية
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    تحديد طريقة المحاسبة وتوليد الرسوم
+                    تسجيل وقفل الاشتراكات الشهرية للطلاب
                   </p>
                 </div>
               </Link>

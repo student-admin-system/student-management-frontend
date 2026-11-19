@@ -46,6 +46,7 @@ Only two roles exist: Admin (the teacher) and Assistant.
 | PERM-14 | See fees, unpaid charges and balance of the student being handled | Yes | Yes |
 | PERM-15 | See business-wide financial figures, the full debtors list, financial summaries | Yes | No |
 | PERM-16 | Reports and dashboard | All | Limited [D1] |
+| PERM-17 | Permanently delete a subject and cascade all associated data (BR-27) | Yes | No |
 
 "Same day" means the calendar day in the **Africa/Cairo** time zone on which the entry was recorded, not the lesson date.
 
@@ -113,8 +114,9 @@ Monthly billing is streamlined into real-time operational workflows at attendanc
 **BR-18 Attendance dates.**
 1. Future dates are never allowed.
 2. Backdating is allowed only within the current and the immediately preceding calendar month. Older dates are rejected for every role, with no Admin override.
-3. Backdated attendance follows the billing rules in BR-02.
+3. Backdated attendance follows the billing rules in BR-02 (billing state is evaluated by the lesson date's month, not today's month).
 4. The student must be Active when the attendance is recorded, and must satisfy BR-20.
+5. Backdated lesson validation: A new lesson can only be created when recording attendance on today's date (Africa/Cairo). For any past date, a lesson must already exist for that combination on that date; if no lesson exists, recording attendance is blocked to prevent ghost lessons from shifting sequential monthly lesson numbering.
 
 **BR-19 Scope of the date window.** The window (BR-18) restricts only the creation of new attendance. Voiding attendance, voiding payment groups, and reopening a month remain available to the Admin for any past month.
 
@@ -136,6 +138,8 @@ Monthly billing is streamlined into real-time operational workflows at attendanc
 **BR-25 Calendar and currency.** Months are Gregorian calendar months in Africa/Cairo. Currency is EGP with two decimal places; whole amounts are shown without trailing zeros (e.g. `100 ج.م`, not `100.00 ج.م`).
 
 **BR-26 Student registration and number.** The student number is generated automatically from a dedicated database sequence, unique, sequential, never edited, never reused, and shown wherever the student appears.
+
+**BR-27 Permanent subject deletion.** The Admin can permanently delete a subject after explicit confirmation. Deleting a subject cascades irreversibly: removing its levels, lessons, attendances, fees, combination histories, and associated charges/payments.
 
 ## 4. Key data (conceptual)
 

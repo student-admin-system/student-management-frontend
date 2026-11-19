@@ -89,11 +89,11 @@ export default function UnconfirmedReportPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            href="/billing"
+            href="/payments?mode=subscription"
             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-md shadow-blue-500/20 text-xs transition-all"
           >
             <Receipt className="w-4 h-4" />
-            <span>الانتقال لشاشة تأكيد الاشتراكات</span>
+            <span>سداد اشتراك شهري</span>
           </Link>
 
           <button
@@ -186,10 +186,10 @@ export default function UnconfirmedReportPage() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <Link
-                        href="/billing"
+                        href={`/payments?studentId=${stu.studentId}&mode=subscription`}
                         className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                       >
-                        <span>تأكيد الحساب</span>
+                        <span>سداد اشتراك</span>
                         <ArrowUpLeft className="w-3.5 h-3.5" />
                       </Link>
                     </td>

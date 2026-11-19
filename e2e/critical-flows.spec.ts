@@ -71,12 +71,8 @@ test.describe('Critical User Flows E2E', () => {
     await expect(page.locator('input[placeholder*="ابحث برقم الطالب"]')).toBeVisible();
   });
 
-  test('4. Billing & Payments Flow: visits billing and payment recording screens', async ({ page }) => {
+  test('4. Billing & Payments Flow: visits payments and subscription recording screens', async ({ page }) => {
     await loginAsAdmin(page);
-
-    // Billing page
-    await page.goto('/billing');
-    await expect(page.getByRole('heading', { name: 'تأكيد الاشتراكات الشهرية' })).toBeVisible();
 
     // Payments page
     await page.goto('/payments');

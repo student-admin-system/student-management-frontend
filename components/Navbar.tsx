@@ -90,7 +90,6 @@ export function Navbar() {
 
   const isReportsActive = pathname.startsWith('/reports');
   const isAdminMenuActive =
-    pathname.startsWith('/billing') ||
     pathname.startsWith('/subjects') ||
     pathname.startsWith('/fees');
 
@@ -182,21 +181,6 @@ export function Navbar() {
                       <div className="px-4 py-1.5 text-[11px] font-bold text-gray-400 tracking-wider">
                         التهيئة الأكاديمية والمالية
                       </div>
-
-                      <Link
-                        href="/billing"
-                        className="flex items-start gap-3 px-4 py-2.5 hover:bg-blue-50/80 transition-colors group"
-                      >
-                        <div className="p-2 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100">
-                          <Receipt className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-800 group-hover:text-blue-700">
-                            الاشتراكات الشهرية
-                          </div>
-                          <div className="text-xs text-gray-500">تأكيد طريقة الحساب وتوليد الرسوم</div>
-                        </div>
-                      </Link>
 
                       <Link
                         href="/subjects"
@@ -476,11 +460,6 @@ export function Navbar() {
                 <div className="text-[11px] font-bold text-gray-400 px-3 pt-3 pb-1">
                   الإدارة الأكاديمية والمالية
                 </div>
-
-                <Link href="/billing" className={navLinkClass('/billing')}>
-                  <Receipt className="w-4 h-4 text-amber-600" />
-                  <span>الاشتراكات الشهرية والفوترة</span>
-                </Link>
 
                 <Link href="/subjects" className={navLinkClass('/subjects')}>
                   <BookOpen className="w-4 h-4 text-indigo-600" />

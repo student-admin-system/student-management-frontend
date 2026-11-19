@@ -29,8 +29,11 @@ export default function AttendancePage() {
   useProtected();
 
   const [date, setDate] = useState('');
+  const [cairoToday, setCairoToday] = useState('');
   useEffect(() => {
-    setDate(new Date().toISOString().split('T')[0]);
+    const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date());
+    setCairoToday(todayStr);
+    setDate(todayStr);
   }, []);
 
   const [levelId, setLevelId] = useState('');
@@ -41,8 +44,9 @@ export default function AttendancePage() {
   } | null>(null);
   const [isLoadingStructure, setIsLoadingStructure] = useState(true);
 
-  // Dynamic lesson number
+  // Dynamic lesson number & backdated lesson existence check
   const [lessonNumber, setLessonNumber] = useState<number | null>(null);
+  const [noLessonOnDate, setNoLessonOnDate] = useState(false);
 
   // Student search
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,22 +121,34 @@ export default function AttendancePage() {
     loadFee();
   }, [levelId, date]);
 
-  // Load lesson attendances & absent list (with dynamic lesson numbering)
+  // Load lesson attendances & absent list (with dynamic lesson numbering and backdated existence check)
   const fetchLessonAttendance = useCallback(async () => {
     if (!levelId || !date) return;
     try {
       setIsLoadingRecorded(true);
       const res = await api.get<any>(`/attendance/lesson?levelId=${levelId}&date=${date}`);
-      if (res && res.attendances) {
-        setRecordedList(res.attendances || []);
-        setAbsentList(res.informationalAbsentList || []);
-        setLessonNumber(res.lessonNumber ?? null);
-      } else if (Array.isArray(res)) {
-        setRecordedList(res);
-        setAbsentList([]);
-      } else {
+      
+      const isPast = cairoToday ? date < cairoToday : false;
+      const exists = res ? (res.lessonExists ?? (res.lesson !== null)) : false;
+
+      if (isPast && !exists) {
+        setNoLessonOnDate(true);
         setRecordedList([]);
         setAbsentList([]);
+        setLessonNumber(null);
+      } else {
+        setNoLessonOnDate(false);
+        if (res && res.attendances) {
+          setRecordedList(res.attendances || []);
+          setAbsentList(res.informationalAbsentList || []);
+          setLessonNumber(res.lessonNumber ?? null);
+        } else if (Array.isArray(res)) {
+          setRecordedList(res);
+          setAbsentList([]);
+        } else {
+          setRecordedList([]);
+          setAbsentList([]);
+        }
       }
     } catch {
       setRecordedList([]);
@@ -140,7 +156,7 @@ export default function AttendancePage() {
     } finally {
       setIsLoadingRecorded(false);
     }
-  }, [levelId, date]);
+  }, [levelId, date, cairoToday]);
 
   useEffect(() => {
     fetchLessonAttendance();
@@ -182,6 +198,11 @@ export default function AttendancePage() {
   ) => {
     if (!levelId || !date) {
       setError('يرجى تحديد المستوى والتاريخ أولاً');
+      return;
+    }
+
+    if (noLessonOnDate) {
+      setError('لا توجد حصة لهذا المستوى في التاريخ المحدد. لا يمكن تسجيل الحضور في تاريخ سابق دون انعقاد حصة مسبقاً.');
       return;
     }
 
@@ -402,16 +423,32 @@ export default function AttendancePage() {
           </div>
         </div>
 
+        {noLessonOnDate && (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-sm font-bold flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <span>
+              لا توجد حصة لهذا المستوى في التاريخ المحدد ({date}). لا يمكن تسجيل الحضور في تاريخ سابق دون وجود حصة مسجلة مسبقاً.
+            </span>
+          </div>
+        )}
+
         <div className="relative">
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
             <Search className="w-5 h-5" />
           </div>
           <input
             type="text"
+            disabled={noLessonOnDate}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ابحث برقم الطالب أو اسمه لتسجيل الحضور..."
-            className="w-full pr-12 pl-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-base font-medium focus:bg-white focus:ring-2 focus:ring-blue-600 outline-hidden transition-all shadow-inner"
+            placeholder={
+              noLessonOnDate
+                ? 'لا يمكن تسجيل الحضور - لم تنعقد حصة في هذا التاريخ'
+                : 'ابحث برقم الطالب أو اسمه لتسجيل الحضور...'
+            }
+            className={`w-full pr-12 pl-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-base font-medium focus:bg-white focus:ring-2 focus:ring-blue-600 outline-hidden transition-all shadow-inner ${
+              noLessonOnDate ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           />
         </div>
 
@@ -436,9 +473,10 @@ export default function AttendancePage() {
               );
 
               const billingState = stu.monthlyBillingState;
-              const isConfirmed = billingState?.isConfirmed;
-              const isSub = isConfirmed && billingState.billingMethod === 'SUBSCRIPTION';
-              const isPerLesson = isConfirmed && billingState.billingMethod === 'PER_LESSON';
+              const isConfirmed = !!billingState?.isConfirmed;
+              const method = billingState?.method || (billingState as any)?.billingMethod;
+              const isSub = isConfirmed && method === 'SUBSCRIPTION';
+              const isPerLesson = isConfirmed && method === 'PER_LESSON';
               const isUnconfirmed = !isConfirmed;
 
               const isSubmitting = submittingStudentId === stu.id;

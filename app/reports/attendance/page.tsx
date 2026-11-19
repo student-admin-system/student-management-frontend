@@ -183,12 +183,13 @@ function AttendanceReportContent() {
         'حالة الحضور',
         'المسؤول',
       ];
-      const rows = studentReport.records.map((r) => [
+      const records = studentReport.records || (studentReport as any).lessons || [];
+      const rows = records.map((r: any) => [
         r.date,
-        `حصة #${r.lessonNumber}`,
-        r.levelName ? `${r.subjectName || ''} - ${r.levelName}` : '-',
+        `حصة #${r.lessonNumber ?? r.monthlyLessonNumber ?? '-'}`,
+        r.levelName ? `${r.subjectName || ''} - ${r.levelName}` : r.combination || '-',
         r.status === 'PRESENT' ? 'حاضر' : 'غائب',
-        r.recordedBy?.name || '-',
+        r.recordedBy?.name ?? (typeof r.recordedBy === 'string' ? r.recordedBy : '-'),
       ]);
       downloadCSV(
         `تقرير_حضور_الطالب_${studentReport.student.fullName}`,
@@ -507,7 +508,7 @@ function AttendanceReportContent() {
                     <h2 className="text-xl font-bold">{studentReport.student.fullName}</h2>
                   </div>
                   <p className="text-xs text-blue-200 mt-1">
-                    المستوى: {studentReport.student.subjectName} - {studentReport.student.levelName}
+                    المستوى: {studentReport.student.combination || (studentReport.student.levelName ? `${studentReport.student.subjectName || ''} - ${studentReport.student.levelName}` : 'المستوى الحالي')}
                   </p>
                 </div>
 
@@ -555,7 +556,7 @@ function AttendanceReportContent() {
                     <span>سجل الحصص المنعقدة وحالة حضور الطالب</span>
                   </h3>
                   <span className="text-xs text-gray-500">
-                    {studentReport.records.length} حصة مسجلة
+                    {(studentReport.records || (studentReport as any).lessons || []).length} حصة مسجلة
                   </span>
                 </div>
 
@@ -571,45 +572,54 @@ function AttendanceReportContent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {studentReport.records.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-gray-400">
-                            لا توجد حصص منعقدة في فترات قيد الطالب النشطة
-                          </td>
-                        </tr>
-                      ) : (
-                        studentReport.records.map((rec) => (
-                          <tr key={rec.lessonId} className="hover:bg-gray-50/50">
-                            <td className="py-3 px-4 font-mono font-bold text-gray-700">
-                              {rec.date}
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-800 text-xs font-black">
-                                حصة رقم {rec.lessonNumber}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-xs text-gray-600">
-                              {rec.levelName ? `${rec.subjectName || ''} - ${rec.levelName}` : '-'}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-gray-500">
-                              {rec.recordedBy?.name || '-'}
-                            </td>
-                            <td className="py-3 px-4">
-                              {rec.status === 'PRESENT' ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                                  <CheckCircle className="w-3.5 h-3.5" />
-                                  <span>حاضر</span>
+                      {(() => {
+                        const records = studentReport.records || (studentReport as any).lessons || [];
+                        if (records.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={5} className="py-8 text-center text-gray-400">
+                                لا توجد حصص منعقدة في فترات قيد الطالب النشطة
+                              </td>
+                            </tr>
+                          );
+                        }
+                        return records.map((rec: any) => {
+                          const lessonNum = rec.lessonNumber ?? rec.monthlyLessonNumber ?? '-';
+                          const comboText = rec.levelName ? `${rec.subjectName || ''} - ${rec.levelName}` : rec.combination || '-';
+                          const recorder = rec.recordedBy?.name ?? (typeof rec.recordedBy === 'string' ? rec.recordedBy : '-');
+                          return (
+                            <tr key={rec.lessonId} className="hover:bg-gray-50/50">
+                              <td className="py-3 px-4 font-mono font-bold text-gray-700">
+                                {rec.date}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-800 text-xs font-black">
+                                  حصة رقم {lessonNum}
                                 </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
-                                  <XCircle className="w-3.5 h-3.5" />
-                                  <span>غائب</span>
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                              </td>
+                              <td className="py-3 px-4 text-xs text-gray-600">
+                                {comboText}
+                              </td>
+                              <td className="py-3 px-4 text-xs text-gray-500">
+                                {recorder}
+                              </td>
+                              <td className="py-3 px-4">
+                                {rec.status === 'PRESENT' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    <span>حاضر</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    <span>غائب</span>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
                     </tbody>
                   </table>
                 </div>
